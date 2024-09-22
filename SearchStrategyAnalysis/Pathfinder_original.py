@@ -60,8 +60,6 @@ if _platform == "darwin":
     matplotlib.use('TkAgg')  # prevent bugs on Mac
 import matplotlib.pyplot as plt
 from matplotlib import cm as CM
-# 231220 add for square platform
-from matplotlib.patches import Rectangle
 
 __author__ = "Matthew Cooke"
 __copyright__ = "Copyright 2019, Jason Snyder Lab, The University of British Columbia"
@@ -173,12 +171,6 @@ dayValStringVar = StringVar()
 dayValStringVar.set("All")
 trialValStringVar = StringVar()
 trialValStringVar.set("All")
-# 240101 add for specifying segments in heatmap function
-subtrialValStringVar = StringVar()
-subtrialValStringVar.set("None")
-# 231213 add for selecting animal(s) in heatmap function
-animalValStringVar = StringVar()
-animalValStringVar.set("All")
 gridSizeStringVar = StringVar()
 gridSizeStringVar.set("70")
 useManual = BooleanVar()
@@ -379,8 +371,7 @@ class mainClass:
 
         try:
             with open('mainobjs.pickle', 'rb') as f:
-                # 231210 uncomment user-defined parameters
-                goalPosVar, goalDiamVar, mazeDiamVar, mazeCentreVar, corridorWidthVar, chainingRadiusVar, thigmotaxisZoneSizeVar = pickle.load(f)
+                # goalPosVar, goalDiamVar, mazeDiamVar, mazeCentreVar, corridorWidthVar, chainingRadiusVar, thigmotaxisZoneSizeVar = pickle.load(f)
                 goalPosStringVar.set(goalPosVar)
                 goalDiamStringVar.set(goalDiamVar)
                 mazeDiamStringVar.set(mazeDiamVar)
@@ -590,10 +581,8 @@ class mainClass:
                                                            fill="red")
                 self.start = canvas.create_oval(195, 195 + scale * radius, 205, 205 + scale * radius, fill="green",
                                                 width=1)
-                # 231219 mod to square
-                # self.goal = canvas.create_oval(goalLBorder, goalTopBorder, goalRBorder, goalBottomBorder, fill="red",
-                #                                width=1)
-                self.goal = canvas.create_rectangle(goalLBorder, goalTopBorder, goalRBorder, goalBottomBorder, fill="red", width=1)
+                self.goal = canvas.create_oval(goalLBorder, goalTopBorder, goalRBorder, goalBottomBorder, fill="red",
+                                               width=1)
 
                 # calculation of angular cooridor, updates to user input and renders blue lines on user interface
                 # to represent outer bounds of cooridor
@@ -1387,47 +1376,24 @@ class mainClass:
             self.defineRadio['state'] = 'active'
             self.calculateButton['state'] = 'normal'
 
-
-    # 231210 add
-    def generatePlots(self, var_trial, var_trialnum, var_animal, var_strategy, var_day, var_X, var_Y, var_mD, var_mcX, var_mcY, var_gX, var_gY, var_gD):
-        if var_trial.trial is not None:
-            InputTrialName = var_trial.trial
-        else:
-            InputTrialName = var_trialnum[var_animal]
-        plotName = "Strategy " + str(var_strategy) + " Animal " + str(var_animal) + "  Day " + str(
-            var_day) + " Trial " + str(InputTrialName)
-        self.plotPoints(var_X, var_Y, float(var_mD), float(var_mcX), float(var_mcY),
-                        float(var_gX), float(var_gY), plotName,
-                        ("Animal: " + str(var_animal) + "  Day/Trial: " + str(var_day) + "/" + str(
-                            InputTrialName)), float(var_gD), 0)
-
-    def plotPoints(self, x, y, mazeDiam, centreX, centreY, platX, platY, name, title, platEstDiam, AskForCategory):  # function to graph the data for the not recognized trials
+    def plotPoints(self, x, y, mazeDiam, centreX, centreY, platX, platY, name, title, platEstDiam):  # function to graph the data for the not recognized trials
         wallsX = []
         wallsY = []
-        # 231220 mod for square platform
-        # platWallsX = []
-        # platWallsY = []
+        platWallsX = []
+        platWallsY = []
         for theta in range(0, 360):
             wallsX.append(centreX + ((math.ceil(mazeDiam) / 2)) * math.cos(math.radians(theta)))
             wallsY.append(centreY + ((math.ceil(mazeDiam) / 2)) * math.sin(math.radians(theta)))
 
-        # 231220 mod for square platform
-        # for theta in range(0, 360):
-        #     platWallsX.append(platX + ((math.ceil(platEstDiam) / 2) + 1) * math.cos(math.radians(theta)))
-        #     platWallsY.append(platY + ((math.ceil(platEstDiam) / 2) + 1) * math.sin(math.radians(theta)))
-        LeftBott_X = platX - math.ceil(platEstDiam) / 2
-        LeftBott_Y = platY - math.ceil(platEstDiam) / 2
+        for theta in range(0, 360):
+            platWallsX.append(platX + ((math.ceil(platEstDiam) / 2) + 1) * math.cos(math.radians(theta)))
+            platWallsY.append(platY + ((math.ceil(platEstDiam) / 2) + 1) * math.sin(math.radians(theta)))
 
         plotName = "output/plots/" + name + " " + str(
             strftime("%Y_%m_%d %I_%M_%S_%p", localtime()))  # the name will be Animal id followed by the date and time
         plt.scatter(x, y, s=15, c='r', alpha=1.0)  # we plot the XY position of animal
         plt.scatter(x[0], y[0], s=100, c='b', alpha=1, marker='s')  # we plot the start point
-        
-        # 231220 mod for square platform
-        # plt.scatter(platWallsX, platWallsY, s=1, c='black', alpha=1.0)  # we plot the goal
-        goal_rect = Rectangle((LeftBott_X, LeftBott_Y), platEstDiam, platEstDiam, fc = "none", ec="black", lw = 2)
-        plt.gca().add_patch(goal_rect)
-
+        plt.scatter(platWallsX, platWallsY, s=1, c='black', alpha=1.0)  # we plot the goal
         plt.scatter(centreX, centreY, s=100, c='g', alpha=1.0)  # we plot the centre
         plt.scatter(wallsX, wallsY, s=15, c='black', alpha=0.3)
         plt.title(title)  # add the title
@@ -1443,90 +1409,88 @@ class mainClass:
         plt.savefig(photoName, dpi=100)  # save the file
         plt.clf()  # clear the plot
 
-        # 231210 add the new parameter, s.t. plots can be drawn for detected strategies
-        if AskForCategory == 1:
-            image = PIL.Image.open(photoName)  # open the saved image
-            photo = ImageTk.PhotoImage(image)  # convert it to something the GUI can read
-            global searchStrategyV
-            global searchStrategyStringVar
+        image = PIL.Image.open(photoName)  # open the saved image
+        photo = ImageTk.PhotoImage(image)  # convert it to something the GUI can read
+        global searchStrategyV
+        global searchStrategyStringVar
 
-            searchStrategyStringVar = StringVar()  # temporary variable for the selection of strategies
-            searchStrategyStringVar.set("Not Recognized")
+        searchStrategyStringVar = StringVar()  # temporary variable for the selection of strategies
+        searchStrategyStringVar.set("Not Recognized")
 
-            self.top2 = Toplevel(root)  # create a new toplevel window
-            self.top2.configure(bg="white")
+        self.top2 = Toplevel(root)  # create a new toplevel window
+        self.top2.configure(bg="white")
 
-            Label(self.top2, text=name, bg="white", fg="black", width=40).grid(row=0, column=0, columnspan=7)  # add a title
-            photoimg = Label(self.top2, image=photo)  # add the photo
-            photoimg.image = photo  # keep a reference
-            photoimg.grid(row=1, column=0, columnspan=7)  # place the photo in the window
+        Label(self.top2, text=name, bg="white", fg="black", width=40).grid(row=0, column=0, columnspan=7)  # add a title
+        photoimg = Label(self.top2, image=photo)  # add the photo
+        photoimg.image = photo  # keep a reference
+        photoimg.grid(row=1, column=0, columnspan=7)  # place the photo in the window
 
-            Label(self.top2, text="Start position", bg="blue", fg="white", width=15).grid(row=2, column=1, padx=3)
-            Label(self.top2, text="Goal and Walls", bg="black", fg="white", width=15).grid(row=2, column=2, padx=3)
-            Label(self.top2, text="Maze centre", bg="green", fg="white", width=15).grid(row=2, column=3, padx=3)
-            Label(self.top2, text="Path", bg="red", fg="white", width=15).grid(row=2, column=4, padx=3)
+        Label(self.top2, text="Start position", bg="blue", fg="white", width=15).grid(row=2, column=1, padx=3)
+        Label(self.top2, text="Goal and Walls", bg="black", fg="white", width=15).grid(row=2, column=2, padx=3)
+        Label(self.top2, text="Maze centre", bg="green", fg="white", width=15).grid(row=2, column=3, padx=3)
+        Label(self.top2, text="Path", bg="red", fg="white", width=15).grid(row=2, column=4, padx=3)
 
-            self.directRadio = Radiobutton(self.top2, text="(1) Direct Path", variable=searchStrategyStringVar,
-                                        value="Direct path",
-                                        indicatoron=0, width=15, bg="white")
-            self.directRadio.grid(row=3, column=0, columnspan=7, pady=3)  # add the radiobuttons for selection
+        self.directRadio = Radiobutton(self.top2, text="(1) Direct Path", variable=searchStrategyStringVar,
+                                       value="Direct path",
+                                       indicatoron=0, width=15, bg="white")
+        self.directRadio.grid(row=3, column=0, columnspan=7, pady=3)  # add the radiobuttons for selection
 
-            self.focalRadio = Radiobutton(self.top2, text="(2) Focal Search", variable=searchStrategyStringVar,
-                                        value="Focal Search",
-                                        indicatoron=0, width=15, bg="white")
-            self.focalRadio.grid(row=4, column=0, columnspan=7, pady=3)
-            self.directedRadio = Radiobutton(self.top2, text="(3) Directed Search", variable=searchStrategyStringVar,
-                                            value="Directed Search (m)", indicatoron=0, width=15, bg="white")
-            self.directedRadio.grid(row=5, column=0, columnspan=7, pady=3)
-            self.spatialRadio = Radiobutton(self.top2, text="(4) Indirect Search", variable=searchStrategyStringVar,
-                                            value="Indirect Search", indicatoron=0, width=15, bg="white")
-            self.spatialRadio.grid(row=6, column=0, columnspan=7, pady=3)
-            self.semiFocalRadio = Radiobutton(self.top2, text="(5) Semi-focal Search", variable=searchStrategyStringVar,
-                                        value="Semi-focal Search",
-                                        indicatoron=0, width=15, bg="white")
-            self.semiFocalRadio.grid(row=7, column=0, columnspan=7, pady=3)
-            self.chainingRadio = Radiobutton(self.top2, text="(6) Chaining", variable=searchStrategyStringVar,
-                                            value="Chaining",
-                                            indicatoron=0, width=15, bg="white")
-            self.chainingRadio.grid(row=8, column=0, columnspan=7, pady=3)
-            self.scanningRadio = Radiobutton(self.top2, text="(7) Scanning", variable=searchStrategyStringVar,
-                                            value="Scanning",
-                                            indicatoron=0, width=15, bg="white")
-            self.scanningRadio.grid(row=9, column=0, columnspan=7, pady=3)
-            self.randomRadio = Radiobutton(self.top2, text="(8) Random Search", variable=searchStrategyStringVar,
-                                        value="Random Search",
-                                        indicatoron=0, width=15, bg="white")
-            self.randomRadio.grid(row=10, column=0, columnspan=7, pady=3)
-            self.thigmoRadio = Radiobutton(self.top2, text="(9) Thigmotaxis", variable=searchStrategyStringVar,
-                                        value="Thigmotaxis",
-                                        indicatoron=0, width=15, bg="white")
-            self.thigmoRadio.grid(row=11, column=0, columnspan=7, pady=3)
-            self.notRecognizedRadio = Radiobutton(self.top2, text="(0) Not Recognized", variable=searchStrategyStringVar,
-                                                value="Not Recognized",
-                                                indicatoron=0, width=15, bg="white")
-            self.notRecognizedRadio.grid(row=12, column=0, columnspan=7, pady=3)
+        self.focalRadio = Radiobutton(self.top2, text="(2) Focal Search", variable=searchStrategyStringVar,
+                                      value="Focal Search",
+                                      indicatoron=0, width=15, bg="white")
+        self.focalRadio.grid(row=4, column=0, columnspan=7, pady=3)
+        self.directedRadio = Radiobutton(self.top2, text="(3) Directed Search", variable=searchStrategyStringVar,
+                                         value="Directed Search (m)", indicatoron=0, width=15, bg="white")
+        self.directedRadio.grid(row=5, column=0, columnspan=7, pady=3)
+        self.spatialRadio = Radiobutton(self.top2, text="(4) Indirect Search", variable=searchStrategyStringVar,
+                                        value="Indirect Search", indicatoron=0, width=15, bg="white")
+        self.spatialRadio.grid(row=6, column=0, columnspan=7, pady=3)
+        self.semiFocalRadio = Radiobutton(self.top2, text="(5) Semi-focal Search", variable=searchStrategyStringVar,
+                                       value="Semi-focal Search",
+                                       indicatoron=0, width=15, bg="white")
+        self.semiFocalRadio.grid(row=7, column=0, columnspan=7, pady=3)
+        self.chainingRadio = Radiobutton(self.top2, text="(6) Chaining", variable=searchStrategyStringVar,
+                                         value="Chaining",
+                                         indicatoron=0, width=15, bg="white")
+        self.chainingRadio.grid(row=8, column=0, columnspan=7, pady=3)
+        self.scanningRadio = Radiobutton(self.top2, text="(7) Scanning", variable=searchStrategyStringVar,
+                                         value="Scanning",
+                                         indicatoron=0, width=15, bg="white")
+        self.scanningRadio.grid(row=9, column=0, columnspan=7, pady=3)
+        self.randomRadio = Radiobutton(self.top2, text="(8) Random Search", variable=searchStrategyStringVar,
+                                       value="Random Search",
+                                       indicatoron=0, width=15, bg="white")
+        self.randomRadio.grid(row=10, column=0, columnspan=7, pady=3)
+        self.thigmoRadio = Radiobutton(self.top2, text="(9) Thigmotaxis", variable=searchStrategyStringVar,
+                                       value="Thigmotaxis",
+                                       indicatoron=0, width=15, bg="white")
+        self.thigmoRadio.grid(row=11, column=0, columnspan=7, pady=3)
+        self.notRecognizedRadio = Radiobutton(self.top2, text="(0) Not Recognized", variable=searchStrategyStringVar,
+                                              value="Not Recognized",
+                                              indicatoron=0, width=15, bg="white")
+        self.notRecognizedRadio.grid(row=12, column=0, columnspan=7, pady=3)
 
-            Button(self.top2, text="(Return) Save", command=self.saveStrat, fg="black", bg="white", width=15).grid(row=13,
-                                                                                                                pady=5)  # save button not mac
+        Button(self.top2, text="(Return) Save", command=self.saveStrat, fg="black", bg="white", width=15).grid(row=13,
+                                                                                                               pady=5)  # save button not mac
 
-            self.top2.bind('1', self.select1)
-            self.top2.bind('2', self.select2)
-            self.top2.bind('3', self.select3)
-            self.top2.bind('4', self.select4)
-            self.top2.bind('5', self.select5)
-            self.top2.bind('6', self.select6)
-            self.top2.bind('7', self.select7)
-            self.top2.bind('8', self.select8)
-            self.top2.bind('9', self.select9)
-            self.top2.bind('0', self.select0)
+        self.top2.bind('1', self.select1)
+        self.top2.bind('2', self.select2)
+        self.top2.bind('3', self.select3)
+        self.top2.bind('4', self.select4)
+        self.top2.bind('5', self.select5)
+        self.top2.bind('6', self.select6)
+        self.top2.bind('7', self.select7)
+        self.top2.bind('8', self.select8)
+        self.top2.bind('9', self.select9)
+        self.top2.bind('0', self.select0)
 
-            self.top2.bind('<Return>', self.enterSave)
+        self.top2.bind('<Return>', self.enterSave)
 
-            self.top2.focus_force()  # once built, show the window in front
+        self.top2.focus_force()  # once built, show the window in front
 
-            searchStrategyV = searchStrategyStringVar.get()  # get the solution
+        searchStrategyV = searchStrategyStringVar.get()  # get the solution
 
-            logging.info("Plotted " + plotName)
+        logging.info("Plotted " + plotName)
 
     def saveStrat(self):  # save the manual strategy
         global searchStrategyV
@@ -1541,8 +1505,8 @@ class mainClass:
 
         self.top3 = Toplevel(root)  # create a new toplevel window
         self.top3.configure(bg="white")
-        self.top3.geometry('{}x{}'.format(250, 350))
-        Label(self.top3, text="Heatmap Parameters", bg="white", fg="black", width=20).pack()  # add a title
+        self.top3.geometry('{}x{}'.format(200, 300))
+        Label(self.top3, text="Heatmap Parameters", bg="white", fg="black", width=15).pack()  # add a title
 
         self.gridSizeL = Label(self.top3, text="Grid Size:", bg="white")
         self.gridSizeL.pack(side=TOP)
@@ -1564,39 +1528,7 @@ class mainClass:
         self.trialValE = Entry(self.top3, textvariable=trialValStringVar)
         self.trialValE.pack(side=TOP)
 
-        #240101 add
-        self.subtrialValL1 = Label(self.top3, text="Specify segment(s) (e.g. 1,3)", bg="white")
-        self.subtrialValL1.pack(side=TOP)
-        self.subtrialValL2 = Label(self.top3, text="or a range of segments (e.g. 1~4):", bg="white")
-        self.subtrialValL2.pack(side=TOP)
-        self.subtrialValE = Entry(self.top3, textvariable=subtrialValStringVar)
-        self.subtrialValE.pack(side=TOP)
-
-        #231213 add
-        self.animalValL = Label(self.top3, text="Animal(s) to consider:", bg="white")
-        self.animalValL.pack(side=TOP)
-        self.animalValE = Entry(self.top3, textvariable=animalValStringVar)
-        self.animalValE.pack(side=TOP)
-        
         Button(self.top3, text="Generate", command=lambda: self.heatmap(aExperiment), fg="black", bg="white").pack()
-
-    def heatmap_getdata(self, var_trial, var_xpoint, var_ypoint, var_xmin, var_xmax, var_ymin, var_ymax):
-        for aDatapoint in var_trial:
-            if aDatapoint.getx() == "-" or aDatapoint.gety() == "-":
-                continue
-            var_xpoint.append(float(aDatapoint.getx()))
-            var_ypoint.append(float(aDatapoint.gety()))
-
-            if aDatapoint.getx() < var_xmin:
-                var_xmin = aDatapoint.getx()
-            if aDatapoint.gety() < var_ymin:
-                var_ymin = aDatapoint.gety()
-            if aDatapoint.getx() > var_xmax:
-                var_xmax = aDatapoint.getx()
-            if aDatapoint.gety() > var_ymax:
-                var_ymax = aDatapoint.gety()
-
-        return var_xpoint, var_ypoint, var_xmin, var_ymin, var_xmax, var_ymax
 
     def heatmap(self, aExperiment):  # Generates heatmaps for inputted trial data
         logging.debug("Heatmap Called")
@@ -1612,11 +1544,8 @@ class mainClass:
         yMax = 0.0
         dayStartStop = []
         trialStartStop = []
-        animalStartStop = []# 231213 add
         dayVal = dayValStringVar.get()
         trialVal = trialValStringVar.get()
-        subtrialVal = subtrialValStringVar.get()
-        animalVal = animalValStringVar.get()# 231213 add
         dayNum = 0
         trialNum = {}
         curDate = None
@@ -1629,60 +1558,13 @@ class mainClass:
         else:
             dayStartStop = [int(dayVal), int(dayVal)]
 
-        
         if trialVal == "All" or trialVal == "all" or trialVal == "":
-            # trialStartStop = [1, float(math.inf)]
-            trialType = 1
-            logging.debug("trialType is 1")
-        # 231212 mod
-        elif "," in trialVal:
-            trialStartStop = trialVal.split(",")
-            trialType = 2
-            logging.debug("trialType is 2: ")
-            logging.debug(trialStartStop)
+            trialStartStop = [1, float(math.inf)]
+        elif "-" in trialVal:
+            trialStartStop = trialVal.split("-", 1)
+            trialStartStop = [int(trialStartStop[0]), int(trialStartStop[1])]
         else:
-            trialStartStop = trialVal
-            trialType = 3
-            logging.debug("trialType is 3: " + trialStartStop)
-        
-        # 240101 add
-        if subtrialVal == "None" or subtrialVal == "none" or subtrialVal == "":
-            subtrialType = 0
-            logging.debug("subtrialType 0: no segment specified")
-        elif "~" in subtrialVal:
-            subtrialType = 1
-            seg_startstop = subtrialVal.split("~")
-            seg_range = range(int(seg_startstop[0]), int(seg_startstop[1]) + 1)
-            seg_list = []
-            for seg in seg_range:
-                seg_list.append(str(seg))
-            logging.debug("subtrialType 1: ")
-            logging.debug(seg_list)
-        elif "," in subtrialVal:
-            subtrialType = 2
-            seg_list = subtrialVal.split(",")
-            logging.debug("subtrialType 2: ")
-            logging.debug(seg_list)
-        else:
-            subtrialType = 3
-            seg_list = subtrialVal
-            logging.debug("subtrialType 3: ")
-            logging.debug(seg_list)
-
-        # 231213 add
-        if animalVal == "All" or animalVal == "all" or animalVal == "":
-            animalStartStop = [1, float(math.inf)]
-            animalType = 1
-            logging.debug("animalType is 1")
-        elif "," in animalVal:
-            animalStartStop = animalVal.split(",")
-            animalType = 2
-            logging.debug("animalType is 2: ")
-            logging.debug(animalStartStop)
-        else:
-            animalStartStop = animalVal
-            animalType = 3
-            logging.debug("animalType is 3: " + animalStartStop)
+            trialStartStop = [int(trialVal), int(trialVal)]
 
         for aTrial in aExperiment:  # for all the files we find
             theStatus.set("Running " + theFile)
@@ -1696,97 +1578,44 @@ class mainClass:
                 trialNum[animal] = 1
             elif animal in trialNum:
                 trialNum[animal] += 1
-                dayNum = 1
             else:
                 trialNum[animal] = 1
-                dayNum = 1
-            
-            # 231212 add
-            if aTrial.trial is not None:
-                InputTrialName = aTrial.trial
-            else:
-                InputTrialName = trialNum[animal]
-            logging.debug(InputTrialName)
-            logging.debug(aTrial.animal)
 
-            # 240103 add
-            if "_" in InputTrialName:
-                TrialName_split = InputTrialName.split("_")
-                if "of" in TrialName_split[1]:
-                    InputTrialName = TrialName_split[0]
-                    seg_idx = TrialName_split[1].split("of")[0]
-                    is_seg = 1
+            for aDatapoint in aTrial:
+                # Create data
+                if dayNum != 0 and trialNum != 0:
+                    if dayNum >= dayStartStop[0] and dayNum <= dayStartStop[1]:
+                        if trialNum[animal] >= trialStartStop[0] and trialNum[animal] <= trialStartStop[1]:
+                            if aDatapoint.getx() == "-" or aDatapoint.gety() == "-":
+                                continue
+                            x.append(float(aDatapoint.getx()))
+                            y.append(float(aDatapoint.gety()))
+
+                            if aDatapoint.getx() < xMin:
+                                xMin = aDatapoint.getx()
+                            if aDatapoint.gety() < yMin:
+                                yMin = aDatapoint.gety()
+                            if aDatapoint.getx() > xMax:
+                                xMax = aDatapoint.getx()
+                            if aDatapoint.gety() > yMax:
+                                yMax = aDatapoint.gety()
                 else:
-                    is_seg = 0
-            else:
-                is_seg = 0
+                    if aDatapoint.getx() == "-" or aDatapoint.gety() == "-":
+                        continue
+                    x.append(float(aDatapoint.getx()))
+                    y.append(float(aDatapoint.gety()))
 
-            # 231212~13 mod, 240103 mod
-            trialLoad = 0
-            animalLoad = 0
-            segCheck = 0
+                    if aDatapoint.getx() < xMin:
+                        xMin = aDatapoint.getx()
+                    if aDatapoint.gety() < yMin:
+                        yMin = aDatapoint.gety()
+                    if aDatapoint.getx() > xMax:
+                        xMax = aDatapoint.getx()
+                    if aDatapoint.gety() > yMax:
+                        yMax = aDatapoint.gety()
 
-            if trialType == 1:
-                logging.debug("all trials included")
-                trialLoad = 1
-            elif trialType == 2:
-                if InputTrialName in trialStartStop:
-                    logging.debug("input is in the trial list")
-                    trialLoad = 1
-            elif trialType == 3:
-                if InputTrialName == trialStartStop:
-                    logging.debug("input matches the trial list")
-                    trialLoad = 1
-
-            if is_seg == 0:
-                if subtrialType == 0:
-                    # This file is not a segment, and no segment is specified by user
-                    segCheck = 1
-                    logging.debug("Checked that this is not a segment")
-                else:
-                    # This file is not a segment, but user specifies one or more segment(s)
-                    segCheck = 0
-            else:
-                if subtrialType == 0:
-                    # This file is a segment, but no segment is specified by user
-                    segCheck = 0
-                elif subtrialType == 1 or subtrialType == 2:
-                    # This file is a segment, and a range of / multiple segments is/are specified
-                    if seg_idx in seg_list:
-                        logging.debug("input is in the segment list")
-                        segCheck = 1
-                elif subtrialType == 3:
-                    # This file is a segment, and a single segment is specified
-                    if seg_idx == seg_list:
-                        logging.debug("input matches the segment list")
-                        segCheck = 1
-
-            if animalType == 1:
-                logging.debug("all animals included")
-                animalLoad = 1
-            elif animalType == 2:
-                if aTrial.animal in animalStartStop:
-                    logging.debug("input is in the animal list")
-                    animalLoad = 1
-            elif animalType == 3:
-                if aTrial.animal == animalStartStop:
-                    logging.debug("input matches the animal list")
-                    animalLoad = 1
-
-            if dayNum >= dayStartStop[0] and dayNum <= dayStartStop[1]:
-                if (trialLoad*animalLoad*segCheck) == 1:
-                    x, y, xMin, xMax, yMin, yMax = self.heatmap_getdata(aTrial, x, y, xMin, xMax, yMin, yMax)
-                    logging.debug("Data included")
-                else:
-                    logging.debug("Data excluded")
-            else:
-                # situations in which dayNum is not in the range of dayStartStop
-                logging.debug("Check if something is wrong for heatmap settings")
-                x, y, xMin, xMax, yMin, yMax = self.heatmap_getdata(aTrial, x, y, xMin, xMax, yMin, yMax)
-
-        aFileName = ("output/heatmaps/ " + "Day " + dayValStringVar.get() + " Trial " + trialValStringVar.get()
-                     + " Seg " + subtrialValStringVar.get() + " Animal " + animalValStringVar.get() + " " 
-                     + str(strftime("%Y_%m_%d %I_%M_%S_%p", localtime())))  # name of the log file for the run
+        aFileName = "output/heatmaps/ " + "Day " + dayValStringVar.get() + " Trial " + trialValStringVar.get() + str(
+            strftime("%Y_%m_%d %I_%M_%S_%p", localtime()))  # name of the log file for the run
         aTitle = fileDirectory
         """
         mu = 0
@@ -1827,14 +1656,10 @@ class mainClass:
         theStatus.set("Waiting for user input...")
         self.updateTasks()
 
-        plt.title("Day: " + dayValStringVar.get() + " Trial: " + trialValStringVar.get() 
-                  + " Seg: " + subtrialValStringVar.get() + " Animal: " + animalValStringVar.get())
+        plt.title("Day: " + dayValStringVar.get() + " Trial: " + trialValStringVar.get())
         cb = plt.colorbar()
         photoName = aFileName + ".png"  # image name the same as plotname
-        # 231218 mod
-        # plt.savefig(photoName, dpi=300, figsize=(4, 4))  # save the file
-        plt.gcf().set_size_inches(6.4, 4.8)
-        plt.savefig(photoName, dpi=300)
+        plt.savefig(photoName, dpi=300, figsize=(4, 4))  # save the file
         plt.show()
 
     def updateTasks(self):  # called when we want to push an update to the GUI
@@ -2190,15 +2015,8 @@ class mainClass:
             elif aDatapoint.getx() < mazeCentreX and aDatapoint.gety() < mazeCentreY:
                 quadrantFour = 1
 
-            # 231220 mod (for square platform)
-            InSquare_x = (abs(goalX - aX) < (float(goalDiam) / 2.0))
-            InSquare_y = (abs(goalY - aY) < (float(goalDiam) / 2.0))
-
             latency = aDatapoint.gettime() - startTime
-            # 231220 mod (for square platform)
-            # if truncateFlag and currentDistanceFromGoal < float(goalDiam) / 2.0:
-            #     break
-            if truncateFlag and (InSquare_x * InSquare_y) == 1:
+            if truncateFlag and currentDistanceFromGoal < float(goalDiam) / 2.0:
                 break
 
         quadrantTotal = quadrantOne + quadrantTwo + quadrantThree + quadrantFour
@@ -2237,8 +2055,7 @@ class mainClass:
         if(goalX-startX != 0):
             aArcTangent = math.degrees(math.atan((goalY - startY) / (goalX - startX)))
         else:
-            aArcTangent = 0
-            # delete the unneeded ";" at the end
+            aArcTangent = 0;
 
         upperCorridor = aArcTangent + corridorWidth
         lowerCorridor = aArcTangent - corridorWidth
@@ -2275,16 +2092,8 @@ class mainClass:
             oldItemX = aDatapoint.getx()
             oldItemY = aDatapoint.gety()
             totalHeadingError += currentHeadingError
-
-            # 231220 mod (for square platform)
-            InSquare_x = (abs(goalX - aDatapoint.getx()) < (float(goalDiam) / 2.0))
-            InSquare_y = (abs(goalY - aDatapoint.gety()) < (float(goalDiam) / 2.0))
-
-            # if truncateFlag and currentDistanceFromGoal < float(goalDiam) / 2.0:
-            #     break
-            if truncateFlag and (InSquare_x * InSquare_y) == 1:
+            if truncateFlag and currentDistanceFromGoal < float(goalDiam) / 2.0:
                 break
-
         try:
             corridorAverage = corridorCounter / i
             distanceAverage = distanceFromGoalSummed / i  # calculate our average distances to landmarks
@@ -2321,16 +2130,7 @@ class mainClass:
         except:
             logging.info("Error with sample rate calculation")
             sampleRate = 1
-
-        # 231220 mod for square platform
-        Start2Goal_angle = math.atan((startY - goalY) / (startX - goalX))
-        if abs(Start2Goal_angle) <= (math.pi/4):
-            trans_angle = abs(Start2Goal_angle)
-        else:
-            trans_angle = math.pi/2 - abs(Start2Goal_angle)
-        goalDiam_square = float(goalDiam) / 2 / (math.cos(trans_angle))
-        # while idealDistance > math.ceil(float(goalDiam) / 2):
-        while idealDistance > goalDiam_square:
+        while idealDistance > math.ceil(float(goalDiam) / 2):
             idealCumulativeDistance += idealDistance
             idealDistance = (idealDistance - velocity * sampleRate)
             if (idealCumulativeDistance > 1000000):
@@ -2469,14 +2269,12 @@ class mainClass:
             headersToWrite.append("Trial")
             if aExperiment.hasTrialNames:
                 headersToWrite.append("Name")
-            # 231219 change if to elif to match dataToWrite
-            elif aExperiment.hasAnimalNames:
+            if aExperiment.hasAnimalNames:
                 headersToWrite.append("Animal")
         except:
             pass
         headersToWrite.extend(
-            # 231219 mod
-            ["Animal Day Trial", "Strategy", "IPE", "Velocity", "Distance covered", "Average distance to goal",
+            ["Trial name", "Trial Code", "Strategy", "IPE", "Velocity", "Distance covered", "Average distance to goal",
              "Average heading error", "Percent of maze traversed", "Latency", "Score", "Initial heading error",
              "Entropy", "Distance to swim path centroid", "Average distance to centre of maze",
              "Percent in angular corridor", "Percent in annulus zone", "Percent in smaller thigmotaxis zone",
@@ -2549,8 +2347,6 @@ class mainClass:
                 directPathCount += 1.0
                 score = 3
                 strategyType = "Direct Path"
-                # 231210 add:
-                self.generatePlots(aTrial, trialNum, animal, strategyType, dayNum, arrayX, arrayY, mazeDiamVar, mazeCentreX, mazeCentreY, goalX, goalY, goalDiamVar)
             # FOCAL SEARCH
             elif averageDistanceToSwimPathCentroid < (
                     mazeRadius * params.distanceToSwimMaxVal / 100) and distanceAverage < (
@@ -2558,22 +2354,16 @@ class mainClass:
                 focalSearchCount += 1.0
                 score = 2
                 strategyType = "Focal Search"
-                # 231210 add:
-                self.generatePlots(aTrial, trialNum, animal, strategyType, dayNum, arrayX, arrayY, mazeDiamVar, mazeCentreX, mazeCentreY, goalX, goalY, goalDiamVar)
             # DIRECTED SEARCH
             elif corridorAverage >= params.corridorAverageMinVal / 100 and ipe <= params.corridoripeMaxVal and totalDistance < params.directedSearchMaxDistance and params.useDirected:  # directed search
                 directSearchCount += 1.0
                 score = 2
                 strategyType = "Directed Search"
-                # 231210 add:
-                self.generatePlots(aTrial, trialNum, animal, strategyType, dayNum, arrayX, arrayY, mazeDiamVar, mazeCentreX, mazeCentreY, goalX, goalY, goalDiamVar)
             # INDIRECT SEARCH
             elif ipe < params.ipeIndirectMaxVal and averageHeadingError < params.headingIndirectMaxVal and params.useIndirect:  # Near miss
                 strategyType = "Indirect Search"
                 score = 2
                 indirectSearchCount += 1.0
-                # 231210 add:
-                self.generatePlots(aTrial, trialNum, animal, strategyType, dayNum, arrayX, arrayY, mazeDiamVar, mazeCentreX, mazeCentreY, goalX, goalY, goalDiamVar)
             # SEMI FOCAL SEARCH
             elif averageDistanceToSwimPathCentroid < (
                     mazeRadius * params.distanceToSwimMaxVal2 / 100) and distanceAverage < (
@@ -2581,38 +2371,28 @@ class mainClass:
                 semiFocalSearchCount += 1.0
                 score = 2
                 strategyType = "Semi-focal Search"
-                # 231210 add:
-                self.generatePlots(aTrial, trialNum, animal, strategyType, dayNum, arrayX, arrayY, mazeDiamVar, mazeCentreX, mazeCentreY, goalX, goalY, goalDiamVar)
             # CHAINING
             elif float(
                     annulusCounter / i) > params.annulusCounterMaxVal / 100 and quadrantTotal >= params.quadrantTotalMaxVal and percentTraversed < params.chainingMaxCoverage and params.useChaining:  # or 4 chaining
                 chainingCount += 1.0
                 score = 1
                 strategyType = "Chaining"
-                # 231210 add:
-                self.generatePlots(aTrial, trialNum, animal, strategyType, dayNum, arrayX, arrayY, mazeDiamVar, mazeCentreX, mazeCentreY, goalX, goalY, goalDiamVar)
             # SCANNING
             elif params.percentTraversedMinVal <= percentTraversed and params.percentTraversedMaxVal > percentTraversed and averageDistanceToCentre <= (
                     params.distanceToCentreMaxVal / 100 * mazeRadius) and params.useScanning:  # scanning
                 scanningCount += 1.0
                 score = 1
                 strategyType = "Scanning"
-                # 231210 add:
-                self.generatePlots(aTrial, trialNum, animal, strategyType, dayNum, arrayX, arrayY, mazeDiamVar, mazeCentreX, mazeCentreY, goalX, goalY, goalDiamVar)
             # THIGMOTAXIS
             elif fullThigmoCounter / i >= params.fullThigmoMinVal / 100 and smallThigmoCounter / i >= params.smallThigmoMinVal / 100 and totalDistance > params.thigmoMinDistance and params.useThigmotaxis:  # thigmotaxis
                 thigmotaxisCount += 1.0
                 score = 0
                 strategyType = "Thigmotaxis"
-                # 231210 add:
-                self.generatePlots(aTrial, trialNum, animal, strategyType, dayNum, arrayX, arrayY, mazeDiamVar, mazeCentreX, mazeCentreY, goalX, goalY, goalDiamVar)
             # RANDOM SEARCH
             elif percentTraversed >= params.percentTraversedRandomMaxVal and params.useRandom:  # random search
                 randomCount += 1.0
                 score = 0
                 strategyType = "Random Search"
-                # 231210 add:
-                self.generatePlots(aTrial, trialNum, animal, strategyType, dayNum, arrayX, arrayY, mazeDiamVar, mazeCentreX, mazeCentreY, goalX, goalY, goalDiamVar)
             # NOT RECOGNIZED
             else:  # cannot categorize
                 strategyType = "Not Recognized"
@@ -2628,11 +2408,10 @@ class mainClass:
                     # print("ipe: ", ipe, " Distance to centroid: ", averageDistanceToSwimPathCentroid, " Distance to plat: ", distanceAverage)
                     plotName = "Strategy " + str(strategyType) + " Animal " + str(animal) + "  Day " + str(
                         dayNum) + " Trial " + str(trialNum[animal])
-                    # 231210 add a parameter of AskForCategory
                     self.plotPoints(arrayX, arrayY, float(mazeDiamVar), float(mazeCentreX), float(mazeCentreY),
                                     float(goalX), float(goalY), plotName,
                                     ("Animal: " + str(animal) + "  Day/Trial: " + str(dayNum) + "/" + str(
-                                        trialNum[animal])), float(goalDiamVar), 1)  # ask user for answer
+                                        trialNum[animal])), float(goalDiamVar))  # ask user for answer
                     root.wait_window(self.top2)  # we wait until the user responds
                     strategyManual = searchStrategyV  # update the strategyType to that of the user
                     try:  # try and kill the popup window
@@ -2656,11 +2435,10 @@ class mainClass:
                       round(corridorAverage, 2))
                 plotName = "Strategy " + str(strategyType) + " Animal " + str(animal) + "  Day " + str(
                     dayNum) + " Trial " + str(trialNum[animal])
-                # 231210 add a parameter of AskForCategory
                 self.plotPoints(arrayX, arrayY, float(mazeDiamVar), float(mazeCentreX), float(mazeCentreY),
                                 float(goalX), float(goalY), plotName,
                                 ("Animal: " + str(animal) + "  Day/Trial: " + str(dayNum) + "/" + str(
-                                    trialNum[animal])), float(goalDiamVar), 1)  # ask user for answer
+                                    trialNum[animal])), float(goalDiamVar))  # ask user for answer
                 root.wait_window(self.top2)  # we wait until the user responds
                 strategyManual = searchStrategyV  # update the strategyType to that of the user
 
@@ -2675,13 +2453,8 @@ class mainClass:
             else:
                 dataToWrite.append('')
 
-            if aTrial.trial is not None:
-                InputTrialName = aTrial.trial
-            else:
-                InputTrialName = trialNum[animal]
-
             dataToWrite.extend(
-                [(str(animal) + " " + str(dayNum) + " " + str(InputTrialName)), strategyType, round(ipe, 2),
+                [(str(animal) + " " + str(dayNum) + " " + str(trialNum[animal])), strategyType, round(ipe, 2),
                  round(velocity, 2), round(totalDistance, 2), round(distanceAverage, 2),
                  round(averageHeadingError, 2), round(percentTraversed, 2), round(latency, 2), score,
                  initialHeadingError, round(entropyResult, 2), round(averageDistanceToSwimPathCentroid, 2),

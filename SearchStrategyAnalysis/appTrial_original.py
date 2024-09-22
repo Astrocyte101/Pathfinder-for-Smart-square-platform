@@ -169,22 +169,9 @@ def find_files(directory, pattern):  # searches for our files in the directory
         logging.debug("Finding files in the directory")
         for root, dirs, files in os.walk(directory):
             for basename in sorted(files):
-                # 231210 mod
-                if pattern == "unknown":
-                    logging.debug("Looking for files for custom software")
-                    if fnmatch.fnmatch(basename, r"*.xlsx"):
-                        logging.debug("Find .xlsx file for custom software")
-                        filename = os.path.join(root, basename)
-                        yield filename
-                    if fnmatch.fnmatch(basename, r"*.csv"):
-                        logging.debug("Find .csv file for custom software")
-                        filename = os.path.join(root, basename)
-                        yield filename
-                else:
-                    logging.debug("Looking for files for existing software")
-                    if fnmatch.fnmatch(basename, pattern):
-                        filename = os.path.join(root, basename)
-                        yield filename
+                if fnmatch.fnmatch(basename, pattern):
+                    filename = os.path.join(root, basename)
+                    yield filename
 
 def openFile():  # opens a dialog to get a single file
     logging.debug("Open File...")
@@ -310,21 +297,14 @@ def saveFileAsExperiment(software, filename, filedirectory):
             print("Please select a file or directory first")
             return
         else:
-            # 231210 mod
-            if software == "custom":
-                extensionType = "unknown"
-                logging.debug("Extension is unknown")# 231210 debug
-            elif software == "ethovision":
+            if software == "ethovision":
                 extensionType = r"*.xlsx"
-                logging.debug("Extension is .xlsx")# 231210 debug
             else:
                 extensionType = r"*.csv"
-                logging.debug("Extension is .csv")# 231210 debug
             for aFile in find_files(filedirectory, extensionType):
                 filenameList.append(aFile)
     else:
         filenameList.append(filename)
-        logging.debug("filename is not empty")# 231210 debug
 
     for filename in filenameList:
         file_extension = os.path.splitext(filename)[1]
@@ -539,20 +519,6 @@ def saveFileAsExperiment(software, filename, filedirectory):
             # listReader = list(reader)
             aTrial = Trial()
             aTrial.setname(filename.split("/")[-1])
-            # 231210 add
-            if (file_extension == '.xlsx'):
-                headerLines = len(reader.iloc[0])
-                for headcol in range(headerLines):
-                    if reader.iloc[0, headcol] == 'SubjectName':
-                        logging.debug("Detect Subject Name")
-                        aTrial.setanimal(reader.iloc[1,headcol])
-                        experiment.setHasAnimalNames(True)
-                        logging.debug(aTrial.animal)
-                    elif reader.iloc[0, headcol] == 'TrialSession':
-                        logging.debug("Detect Trial Session")
-                        aTrial.settrial(reader.iloc[1,headcol])
-                        experiment.setHasTrialNames(True)
-                        logging.debug(aTrial.trial)
             aIndex = 0
             xCol = customxyt[0][0]
             yCol = customxyt[1][0]

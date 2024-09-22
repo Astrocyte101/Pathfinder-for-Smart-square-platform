@@ -60,8 +60,6 @@ if _platform == "darwin":
     matplotlib.use('TkAgg')  # prevent bugs on Mac
 import matplotlib.pyplot as plt
 from matplotlib import cm as CM
-# 231220 add for square platform
-from matplotlib.patches import Rectangle
 
 __author__ = "Matthew Cooke"
 __copyright__ = "Copyright 2019, Jason Snyder Lab, The University of British Columbia"
@@ -173,9 +171,6 @@ dayValStringVar = StringVar()
 dayValStringVar.set("All")
 trialValStringVar = StringVar()
 trialValStringVar.set("All")
-# 240101 add for specifying segments in heatmap function
-subtrialValStringVar = StringVar()
-subtrialValStringVar.set("None")
 # 231213 add for selecting animal(s) in heatmap function
 animalValStringVar = StringVar()
 animalValStringVar.set("All")
@@ -590,10 +585,8 @@ class mainClass:
                                                            fill="red")
                 self.start = canvas.create_oval(195, 195 + scale * radius, 205, 205 + scale * radius, fill="green",
                                                 width=1)
-                # 231219 mod to square
-                # self.goal = canvas.create_oval(goalLBorder, goalTopBorder, goalRBorder, goalBottomBorder, fill="red",
-                #                                width=1)
-                self.goal = canvas.create_rectangle(goalLBorder, goalTopBorder, goalRBorder, goalBottomBorder, fill="red", width=1)
+                self.goal = canvas.create_oval(goalLBorder, goalTopBorder, goalRBorder, goalBottomBorder, fill="red",
+                                               width=1)
 
                 # calculation of angular cooridor, updates to user input and renders blue lines on user interface
                 # to represent outer bounds of cooridor
@@ -1404,30 +1397,21 @@ class mainClass:
     def plotPoints(self, x, y, mazeDiam, centreX, centreY, platX, platY, name, title, platEstDiam, AskForCategory):  # function to graph the data for the not recognized trials
         wallsX = []
         wallsY = []
-        # 231220 mod for square platform
-        # platWallsX = []
-        # platWallsY = []
+        platWallsX = []
+        platWallsY = []
         for theta in range(0, 360):
             wallsX.append(centreX + ((math.ceil(mazeDiam) / 2)) * math.cos(math.radians(theta)))
             wallsY.append(centreY + ((math.ceil(mazeDiam) / 2)) * math.sin(math.radians(theta)))
 
-        # 231220 mod for square platform
-        # for theta in range(0, 360):
-        #     platWallsX.append(platX + ((math.ceil(platEstDiam) / 2) + 1) * math.cos(math.radians(theta)))
-        #     platWallsY.append(platY + ((math.ceil(platEstDiam) / 2) + 1) * math.sin(math.radians(theta)))
-        LeftBott_X = platX - math.ceil(platEstDiam) / 2
-        LeftBott_Y = platY - math.ceil(platEstDiam) / 2
+        for theta in range(0, 360):
+            platWallsX.append(platX + ((math.ceil(platEstDiam) / 2) + 1) * math.cos(math.radians(theta)))
+            platWallsY.append(platY + ((math.ceil(platEstDiam) / 2) + 1) * math.sin(math.radians(theta)))
 
         plotName = "output/plots/" + name + " " + str(
             strftime("%Y_%m_%d %I_%M_%S_%p", localtime()))  # the name will be Animal id followed by the date and time
         plt.scatter(x, y, s=15, c='r', alpha=1.0)  # we plot the XY position of animal
         plt.scatter(x[0], y[0], s=100, c='b', alpha=1, marker='s')  # we plot the start point
-        
-        # 231220 mod for square platform
-        # plt.scatter(platWallsX, platWallsY, s=1, c='black', alpha=1.0)  # we plot the goal
-        goal_rect = Rectangle((LeftBott_X, LeftBott_Y), platEstDiam, platEstDiam, fc = "none", ec="black", lw = 2)
-        plt.gca().add_patch(goal_rect)
-
+        plt.scatter(platWallsX, platWallsY, s=1, c='black', alpha=1.0)  # we plot the goal
         plt.scatter(centreX, centreY, s=100, c='g', alpha=1.0)  # we plot the centre
         plt.scatter(wallsX, wallsY, s=15, c='black', alpha=0.3)
         plt.title(title)  # add the title
@@ -1541,8 +1525,8 @@ class mainClass:
 
         self.top3 = Toplevel(root)  # create a new toplevel window
         self.top3.configure(bg="white")
-        self.top3.geometry('{}x{}'.format(250, 350))
-        Label(self.top3, text="Heatmap Parameters", bg="white", fg="black", width=20).pack()  # add a title
+        self.top3.geometry('{}x{}'.format(200, 300))
+        Label(self.top3, text="Heatmap Parameters", bg="white", fg="black", width=15).pack()  # add a title
 
         self.gridSizeL = Label(self.top3, text="Grid Size:", bg="white")
         self.gridSizeL.pack(side=TOP)
@@ -1563,14 +1547,6 @@ class mainClass:
         self.trialValL.pack(side=TOP)
         self.trialValE = Entry(self.top3, textvariable=trialValStringVar)
         self.trialValE.pack(side=TOP)
-
-        #240101 add
-        self.subtrialValL1 = Label(self.top3, text="Specify segment(s) (e.g. 1,3)", bg="white")
-        self.subtrialValL1.pack(side=TOP)
-        self.subtrialValL2 = Label(self.top3, text="or a range of segments (e.g. 1~4):", bg="white")
-        self.subtrialValL2.pack(side=TOP)
-        self.subtrialValE = Entry(self.top3, textvariable=subtrialValStringVar)
-        self.subtrialValE.pack(side=TOP)
 
         #231213 add
         self.animalValL = Label(self.top3, text="Animal(s) to consider:", bg="white")
@@ -1615,7 +1591,6 @@ class mainClass:
         animalStartStop = []# 231213 add
         dayVal = dayValStringVar.get()
         trialVal = trialValStringVar.get()
-        subtrialVal = subtrialValStringVar.get()
         animalVal = animalValStringVar.get()# 231213 add
         dayNum = 0
         trialNum = {}
@@ -1629,9 +1604,8 @@ class mainClass:
         else:
             dayStartStop = [int(dayVal), int(dayVal)]
 
-        
         if trialVal == "All" or trialVal == "all" or trialVal == "":
-            # trialStartStop = [1, float(math.inf)]
+            trialStartStop = [1, float(math.inf)]
             trialType = 1
             logging.debug("trialType is 1")
         # 231212 mod
@@ -1644,30 +1618,6 @@ class mainClass:
             trialStartStop = trialVal
             trialType = 3
             logging.debug("trialType is 3: " + trialStartStop)
-        
-        # 240101 add
-        if subtrialVal == "None" or subtrialVal == "none" or subtrialVal == "":
-            subtrialType = 0
-            logging.debug("subtrialType 0: no segment specified")
-        elif "~" in subtrialVal:
-            subtrialType = 1
-            seg_startstop = subtrialVal.split("~")
-            seg_range = range(int(seg_startstop[0]), int(seg_startstop[1]) + 1)
-            seg_list = []
-            for seg in seg_range:
-                seg_list.append(str(seg))
-            logging.debug("subtrialType 1: ")
-            logging.debug(seg_list)
-        elif "," in subtrialVal:
-            subtrialType = 2
-            seg_list = subtrialVal.split(",")
-            logging.debug("subtrialType 2: ")
-            logging.debug(seg_list)
-        else:
-            subtrialType = 3
-            seg_list = subtrialVal
-            logging.debug("subtrialType 3: ")
-            logging.debug(seg_list)
 
         # 231213 add
         if animalVal == "All" or animalVal == "all" or animalVal == "":
@@ -1709,23 +1659,9 @@ class mainClass:
             logging.debug(InputTrialName)
             logging.debug(aTrial.animal)
 
-            # 240103 add
-            if "_" in InputTrialName:
-                TrialName_split = InputTrialName.split("_")
-                if "of" in TrialName_split[1]:
-                    InputTrialName = TrialName_split[0]
-                    seg_idx = TrialName_split[1].split("of")[0]
-                    is_seg = 1
-                else:
-                    is_seg = 0
-            else:
-                is_seg = 0
-
-            # 231212~13 mod, 240103 mod
+            # 231212~13 mod
             trialLoad = 0
             animalLoad = 0
-            segCheck = 0
-
             if trialType == 1:
                 logging.debug("all trials included")
                 trialLoad = 1
@@ -1737,29 +1673,6 @@ class mainClass:
                 if InputTrialName == trialStartStop:
                     logging.debug("input matches the trial list")
                     trialLoad = 1
-
-            if is_seg == 0:
-                if subtrialType == 0:
-                    # This file is not a segment, and no segment is specified by user
-                    segCheck = 1
-                    logging.debug("Checked that this is not a segment")
-                else:
-                    # This file is not a segment, but user specifies one or more segment(s)
-                    segCheck = 0
-            else:
-                if subtrialType == 0:
-                    # This file is a segment, but no segment is specified by user
-                    segCheck = 0
-                elif subtrialType == 1 or subtrialType == 2:
-                    # This file is a segment, and a range of / multiple segments is/are specified
-                    if seg_idx in seg_list:
-                        logging.debug("input is in the segment list")
-                        segCheck = 1
-                elif subtrialType == 3:
-                    # This file is a segment, and a single segment is specified
-                    if seg_idx == seg_list:
-                        logging.debug("input matches the segment list")
-                        segCheck = 1
 
             if animalType == 1:
                 logging.debug("all animals included")
@@ -1774,7 +1687,7 @@ class mainClass:
                     animalLoad = 1
 
             if dayNum >= dayStartStop[0] and dayNum <= dayStartStop[1]:
-                if (trialLoad*animalLoad*segCheck) == 1:
+                if (trialLoad*animalLoad) == 1:
                     x, y, xMin, xMax, yMin, yMax = self.heatmap_getdata(aTrial, x, y, xMin, xMax, yMin, yMax)
                     logging.debug("Data included")
                 else:
@@ -1784,9 +1697,8 @@ class mainClass:
                 logging.debug("Check if something is wrong for heatmap settings")
                 x, y, xMin, xMax, yMin, yMax = self.heatmap_getdata(aTrial, x, y, xMin, xMax, yMin, yMax)
 
-        aFileName = ("output/heatmaps/ " + "Day " + dayValStringVar.get() + " Trial " + trialValStringVar.get()
-                     + " Seg " + subtrialValStringVar.get() + " Animal " + animalValStringVar.get() + " " 
-                     + str(strftime("%Y_%m_%d %I_%M_%S_%p", localtime())))  # name of the log file for the run
+        aFileName = "output/heatmaps/ " + "Day " + dayValStringVar.get() + " Trial " + trialValStringVar.get() + " Animal " + animalValStringVar.get() + " " + str(
+            strftime("%Y_%m_%d %I_%M_%S_%p", localtime()))  # name of the log file for the run
         aTitle = fileDirectory
         """
         mu = 0
@@ -1827,8 +1739,7 @@ class mainClass:
         theStatus.set("Waiting for user input...")
         self.updateTasks()
 
-        plt.title("Day: " + dayValStringVar.get() + " Trial: " + trialValStringVar.get() 
-                  + " Seg: " + subtrialValStringVar.get() + " Animal: " + animalValStringVar.get())
+        plt.title("Day: " + dayValStringVar.get() + " Trial: " + trialValStringVar.get() + " Animal: " + animalValStringVar.get())
         cb = plt.colorbar()
         photoName = aFileName + ".png"  # image name the same as plotname
         # 231218 mod
@@ -2190,15 +2101,8 @@ class mainClass:
             elif aDatapoint.getx() < mazeCentreX and aDatapoint.gety() < mazeCentreY:
                 quadrantFour = 1
 
-            # 231220 mod (for square platform)
-            InSquare_x = (abs(goalX - aX) < (float(goalDiam) / 2.0))
-            InSquare_y = (abs(goalY - aY) < (float(goalDiam) / 2.0))
-
             latency = aDatapoint.gettime() - startTime
-            # 231220 mod (for square platform)
-            # if truncateFlag and currentDistanceFromGoal < float(goalDiam) / 2.0:
-            #     break
-            if truncateFlag and (InSquare_x * InSquare_y) == 1:
+            if truncateFlag and currentDistanceFromGoal < float(goalDiam) / 2.0:
                 break
 
         quadrantTotal = quadrantOne + quadrantTwo + quadrantThree + quadrantFour
@@ -2275,16 +2179,8 @@ class mainClass:
             oldItemX = aDatapoint.getx()
             oldItemY = aDatapoint.gety()
             totalHeadingError += currentHeadingError
-
-            # 231220 mod (for square platform)
-            InSquare_x = (abs(goalX - aDatapoint.getx()) < (float(goalDiam) / 2.0))
-            InSquare_y = (abs(goalY - aDatapoint.gety()) < (float(goalDiam) / 2.0))
-
-            # if truncateFlag and currentDistanceFromGoal < float(goalDiam) / 2.0:
-            #     break
-            if truncateFlag and (InSquare_x * InSquare_y) == 1:
+            if truncateFlag and currentDistanceFromGoal < float(goalDiam) / 2.0:
                 break
-
         try:
             corridorAverage = corridorCounter / i
             distanceAverage = distanceFromGoalSummed / i  # calculate our average distances to landmarks
@@ -2321,16 +2217,7 @@ class mainClass:
         except:
             logging.info("Error with sample rate calculation")
             sampleRate = 1
-
-        # 231220 mod for square platform
-        Start2Goal_angle = math.atan((startY - goalY) / (startX - goalX))
-        if abs(Start2Goal_angle) <= (math.pi/4):
-            trans_angle = abs(Start2Goal_angle)
-        else:
-            trans_angle = math.pi/2 - abs(Start2Goal_angle)
-        goalDiam_square = float(goalDiam) / 2 / (math.cos(trans_angle))
-        # while idealDistance > math.ceil(float(goalDiam) / 2):
-        while idealDistance > goalDiam_square:
+        while idealDistance > math.ceil(float(goalDiam) / 2):
             idealCumulativeDistance += idealDistance
             idealDistance = (idealDistance - velocity * sampleRate)
             if (idealCumulativeDistance > 1000000):

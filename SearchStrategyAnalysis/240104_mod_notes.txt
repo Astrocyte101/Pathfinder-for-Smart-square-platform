@@ -1,0 +1,48 @@
+20240104 Modification on Pathfinder
+Author: Yi-Ting Lin
+Provided files: Pathfinder.py, mwm_data_transform231221.m
+Language: Python, Matlab
+Environment and version: 
+	For Python the programm is run in Anaconda3, the scripts are modified and tested in Python 3.7.3.
+	For Matlab the script is created and tested in R2018b.
+Operating system:
+	The Python original source codes supported Windows, Mac, and Linux.
+	Modifications are made and tested under Windows 10.
+	The Matlab script is created and tested under Windows 10.
+		For Mac, a bug in v.231209 regarding the usage of '\' vs '/' in direcotry is solved in this version.
+	(Update testing information after testing in Mac.)
+
+1. List of updates
+	(1) Inconsistency in the output excel file header is fixed.
+	(2) Square platform: corresponding changes to the interactive plot on GUI, the output plots, and the calculation of ideal path.
+	(3) Matlab script now supports segmentation of data.
+	(4) A new input field in the heatmap function for specifying segment(s) to analyze.
+
+2. Notes on the Matlab script
+	(1) I add an input parameter <slash_type> so that users can choose whether they'd like to use '\' or '/' according to their OS.
+	(2) A new user-defined input parameter <sort_segment> is added. 
+	    If you pass 1 to it, your data will be segmented and you'll get one file for each segment, as well as one for the whole trial.
+	    If you pass 0 to it, your data won't be segmented. You'll get one file for each trial.
+	(3) Along with <sort_segment>, three new parameters are also added. Their values do not matter if you set <sort_segment = 0>.
+	    <seg_length>: the length of each of your segments. Note that the unit is second, not milisecond.
+	    <add_zero>: whether you'd like to add a row of Time = 0 at the beginning of each trial. Pass 1 for yes and 0 for no.
+			Note that the x & y coordinates of this row will be the same as your actual first row.
+	    <truncate>: whether you'd like to discard a segment that is of length less than <seg_length>,
+			which is likely to happen to the last segment of each trial.
+			Pass 1 for discarding it and 0 for keeping it.
+
+3. Notes on the heatmap function
+	A new input field is added for specifying segment(s) you'd like to analyze.
+	The input value can be: single segment number, multiple numbers separated by <,>, or a range of segments specified by <~>
+	Note that additional space would cause error.
+	e.g. if you have 4 segments,
+	(O) 2
+	(O) 1,3,4
+	(O) 1~3
+	(X) 1, 3, 4
+	(X) [1,3,4]
+	(X) 1of4,2of4
+
+	If you'd like to analyze the whole trial rather than segments, just leave this field as <None> and specify the trial(s) you need.
+
+

@@ -1,0 +1,60 @@
+20231214 Modification on Pathfinder
+Author: Yi-Ting Lin
+Provided files: Pathfinder.py, appTrial.py, mwm_data_transform231209.m
+Language: Python, Matlab
+Environment and version: 
+	For Python the program is run in Anaconda3, the scripts are modified and tested in Python 3.7.3.
+	For Matlab the script is created and tested in R2018b.
+Operating system:
+	The Python original source codes supported Windows, Mac, and Linux.
+	Modifications are made and tested under Windows 10.
+	The Matlab script is created and tested under Windows 10.
+	(Update this information after testing in Mac.)
+
+1. How to use the new version
+	Go to C: -> user -> (your user name) -> Anaconda3 -> Lib -> site-packages -> SearchStrategyAnalysis
+	Rename the original appTrial.py and Pathfinder.py as whatever name you like.
+	(This is just to ensure that you still have the original source codes.)
+	Move the new appTrial.py an Pathfinder.py to the folder SearchStrategyAnalysis, don't rename them.
+	Run pathfinder in your preferred directory.
+
+2. Notes on the heatmap function
+	A new input field is added for specifying animal(s) you'd like to analyze.
+	The input value can be single animal name or multiple names separated by <,>
+	Note that additional space would cause error.
+	e.g. if you have animal names as WMD_01, WMD_02, WMD_03, etc.
+	(O) WMD_01
+	(O) WMD_01,WMD_02
+	(O) WMD_01,WMD_02,WMD_03
+	(X) WMD_01, WMD_02
+	(X) [WMD_01,WMD_02]
+	(X) 01,02
+
+	The same input rules apply to the trial(s) input field as well.
+	It's plausible to specify animal(s) and trial(s) at the same time, 
+	but please leave the day(s) input field as <All> for our Smart data.
+
+3. Matlab script mwm_data_transform231209.m
+	The Matlab script is provided for transforming Smart .xls output into a folder containing .xlsx data files.
+	Each .xlsx file contains data of a single animal in a single trial.
+	The Matlab script can be placed at the folder where you would like to analyze the data.
+	The corresponding folder would be automatically created and can be selected in Pathfinder's "Open directory".
+
+4. Other modifications
+	(1) Plots for swimming track can be created for automatically detected trials.
+	    In the original version, plots are created only for manually defined trials.
+	    Animal, Day, Trial name can be detected and concatenated as plot names.
+	    However, for user-defined softwares, under current modified version only .xlsx files are supported for detecting these names.
+	    For softwares with .csv files, Animal name may be <None> and Trial name may be numbers like <1>, <2>, <3>, etc.
+
+	(2) Batch analysis is now plausible
+	    There was a bug in the original codes that made .xlsx files unable to be detected under user-defined software settings.
+	    The bug is fixed in the current modification.
+	    Use "Open directory" to load the folder containing your files and they will all be processed upon clicking the Calculate button.
+
+	(3) Memorizing maze parameters
+	    The parameters at the time you click the Calculate button would be stored.
+	    These values would automatically be called the next time you initialize Pathfinder.
+	    This function actually existed in the source codes, but the author commented it.
+	    I uncomment it so it's working again now.
+

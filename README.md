@@ -115,6 +115,8 @@ This program was developed in order to simplify as well as remove inconsistencie
 
 ## Installation
 
+**If you would like to try this modified version, please install the original version first. After installation via the methods below, update the files in the SearchStrategyAnalysis folder with files provided in this fork.**
+
 Installing the program is easy for both macOS and Windows users.
 
 Pathfinder requires you to have Python 3.6 or later. We highly recommend installing Conda for python via the Anaconda 🐍 package https://www.anaconda.com/distribution/. Once installed, the installation of Pathfinder is easy.

@@ -1,16 +1,23 @@
-# Pathfinder    [![DOI](https://zenodo.org/badge/188258387.svg)](https://zenodo.org/badge/latestdoi/188258387)
+# Pathfinder Compatible With Smart Software & Square Platform  
 
 Morris Water Maze search strategy and entropy analysis.
 
-Created by **Matthew Cooke** at **The University of British Columbia**, **Jason Snyder Lab**
+Edited by **Yi-Ting Lin** at **National Taiwan University**, **Laboratory of Integrated Neuroscience and Ethology**.
 
-**For more information about the features and usage of Pathfinder please visit our [wiki](https://github.com/MatthewBCooke/Pathfinder/wiki)**
+Modifications are made for compatibility with experiments recorded using the Smart software. Due to experimental settings, the platform shape is changed to square. Please find the .txt files for details about the modifications.
+
+The original codes are preserved in the files with suffix "_original".
+
+The original work was created by **Matthew Cooke** at **The University of British Columbia**, **Jason Snyder Lab**
+[![DOI](https://zenodo.org/badge/188258387.svg)](https://zenodo.org/badge/latestdoi/188258387)
+
+**For more information about the features and usage of Pathfinder please visit the original authors' [wiki](https://github.com/MatthewBCooke/Pathfinder/wiki)**
 
 ## Synopsis
 
 The Pathfinder package is a search strategy analysis tool for the Morris Water Maze, and can be expanded for other spatial navigation tasks. The program analyses X-Y coordinate data exported from commercially available tracking software. Pathfinder currently supports outputs from: Ethovision, Anymaze, WaterMaze, and ezTrack. We then calculate the best-fit search strategy for the trial. Trials are fit into one of: Direct Swim, Directed Search, Focal Search, Spatial indirect, Chaining, Scanning, Thigmotaxis, and Random Search.
 
-## Citing
+## Citing the Original Work
 
 If you use Pathfinder, please cite: Cooke MB, O'Leary TP, Harris P et al. (2019) Pathfinder: open source software for analyzing spatial navigation search strategies. F1000Research, 8:1521. https://doi.org/10.12688/f1000research.20352.2
 
@@ -34,6 +41,8 @@ If you use Pathfinder, please cite: Cooke MB, O'Leary TP, Harris P et al. (2019)
 3. In the custom parameters pane, you can select and deselect any of the search strategies. Deselecting Strategies will remove them from consideration. You can also define the cutoff values for each strategy. See https://github.com/MatthewBCooke/Pathfinder/wiki/Description-of-Parameters for detailed description of parameters
 
 4. Once you have chosen your parameters, be sure to select your tracking software. Ethovision, Anymaze, ezTrack and Watermaze are currently supported. We also have a "Define" button that allows users to import most non-supported files.
+
+**Modification notes: For the files from Smart, please preprocess them with the Matlab script first. And use the "Define" button to import the resulting .xlsx files.**
 
 5. You may then alter the main values to suit your data. Platform position, pool centre, and pool diameter can be automatically calculated for groups of trials using one constant platform location. For all other data you must manually define these values (Example: `Platform Position (x,y) | 6.53,-17.3`).
 
@@ -63,6 +72,14 @@ If you use Pathfinder, please cite: Cooke MB, O'Leary TP, Harris P et al. (2019)
     3. Day: A day or range of days to use for calculating the heatmaps. (E.g. 1 or 3-6 or All)
 
     4. Trial: A trial or range of trials on the above selected days. (E.g. All or 1-4 or 2)
+    
+    **Modifications: Two input fields are added**
+    
+    5. Segment(s): One, multiple, or a range of segments. (E.g. 1,3,4 or 1~3 or 2 or None) The segments can be obtained by running the Matlab script to prepocess the data.
+    
+    6. Animal(s): One or multiple animal(s). (E.g. WMD_01,WMD_02)
+
+    **Please note that there should be NO space between the numbers and commas (E.g. 1, 2).**
 
 2. You can then click generate, and our software will plot a heatmap of your trial data. These will be saved in the "Heatmaps" subfolder.
 
